@@ -20,6 +20,8 @@ suite('ngrok-services', function() {
     return run(['stop']);
   });
 
+  this.timeout('100s');
+
   test('start config file', function(done) {
     // start the http server
     var server = http.createServer(function(req, res) {
@@ -39,10 +41,13 @@ suite('ngrok-services', function() {
     run(['start', fixture]).then(
       function(result) {
         assert.ok(fs.existsSync(pidPath), 'creates pid file');
-
-        // stdout should be valid json always.
         var hosts = JSON.parse(result.stdout);
-        https.get(hosts.http);
+        var req = http;
+        if (hosts.http.indexOf('https') !== -1) {
+          req = https;
+        }
+        // stdout should be valid json always.
+        req.get(hosts.http);
       },
       function errs(result) {
         done(result.err);
