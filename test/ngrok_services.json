@@ -1,0 +1,4 @@
+{
+  "service1": { "port": 60444 },
+  "service2": { "port": 60022 }
+}

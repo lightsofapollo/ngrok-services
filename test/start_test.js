@@ -1,5 +1,4 @@
 suite('ngrok-services', function() {
-  var assert = require('assert');
   var http = require('http');
   var https = require('https');
   var fs = require('fs');

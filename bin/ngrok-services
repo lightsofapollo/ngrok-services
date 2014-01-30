@@ -5,9 +5,12 @@ var fork = require('child_process').fork;
 var spawn = require('child_process').spawn;
 var fsPath = require('path');
 var fs = require('fs');
+var debug = require('debug')('ngrok-services:cli');
 
 // default pid if parent does not provide one
 var DEFAULT_PID_FILE = './.ngrok_services.pid';
+// default config file name
+var DEFAULT_CONFIG_FILE = 'ngrok_services.json';
 
 program.
   option('-p, --pid-file <path>', 'pid file location', DEFAULT_PID_FILE);
@@ -35,12 +38,34 @@ program.
     });
   });
 
+// helper function to resolve the config file based on defaults, cwd and other
+// factors.
+function resolveConfigFile(input) {
+  input = fsPath.resolve(input || DEFAULT_CONFIG_FILE);
+
+  // if the file exists then return it
+  if (!fs.existsSync(input)) {
+    console.error('invalid config path %s not a directory or file', input);
+    process.exit(1);
+    return;
+  }
+
+  var stat = fs.statSync(input);
+
+  // return file immediately
+  if (stat.isFile()) return input;
+
+  input = fsPath.join(input, DEFAULT_CONFIG_FILE);
+  return input;
+}
+
 // start command
 program.
-  command('start <config>').
+  command('start [config]').
   description('start running ngrok with the config').
   action(function(config, cmd) {
-    var start = Date.now();
+    config = resolveConfigFile(config);
+
     // start the ngrok interface in a different process
     var proc = spawn(
       process.execPath,
@@ -81,10 +106,11 @@ program.
       proc.unref();
     });
 
+    var options = { pidFile: pidFile };
+    debug('launch ngrok services', config, options);
+
     // send the already parsed arguments
-    proc.send([config, {
-      pidFile: pidFile
-    }]);
+    proc.send([config, options]);
   });
 
 program.parse(process.argv);
