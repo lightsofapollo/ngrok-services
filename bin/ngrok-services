@@ -119,4 +119,31 @@ program.
     proc.send([config, options]);
   });
 
+// run ourselves via spawn (don't do this)
+function runSelf(command, argv, callback) {
+  var proc = spawn(process.argv[1], [command].concat(argv), {
+    stdio: 'inherit'
+  });
+
+  proc.once('exit', function(code) {
+    if (code !== 0) return process.exit(code);
+    callback && callback();
+  });
+}
+
+// restart
+program.
+  command('restart [config]').
+  description('ensure the service is running by stopping/starting').
+  action(function(config, cmd) {
+    // super ghetto start/restart
+    var options = [];
+    if (cmd.pidFile) options.push('--pid-file ' + cmd.pidFile);
+    options.push(config || '');
+
+    runSelf('stop', options, function() {
+      runSelf('start', options);
+    });
+  });
+
 program.parse(process.argv);

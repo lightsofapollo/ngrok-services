@@ -1,10 +1,7 @@
 suite('pid placement', function() {
   var run = require('./run');
+  var pid = require('./pid');
   var fs = require('fs');
-
-  function pid(folder) {
-    return __dirname + '/' + folder + '/.ngrok_services.pid';
-  }
 
   teardown(function() {
     return run(['stop']);
