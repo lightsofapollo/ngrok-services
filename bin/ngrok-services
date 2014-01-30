@@ -10,22 +10,19 @@ var debug = require('debug')('ngrok-services:cli');
 // default pid if parent does not provide one
 var DEFAULT_PID_FILE = '.ngrok_services.pid';
 // default config file name
-var DEFAULT_CONFIG_FILE = 'ngrok_services.json';
+var DEFAULT_CONFIG_FILE = 'ngrok_services';
 
 // helper function to resolve the config file based on defaults, cwd and other
 // factors.
 function resolveConfigFile(input) {
   input = fsPath.resolve(input || DEFAULT_CONFIG_FILE);
 
-  // if the file exists then return it
+  // not a directory return the path (require will catch errors.
   if (!fs.existsSync(input)) {
-    console.error('invalid config path %s not a directory or file', input);
-    process.exit(1);
-    return;
+    return input;
   }
 
   var stat = fs.statSync(input);
-
   // return file immediately
   if (stat.isFile()) return input;
 
