@@ -1,45 +1,23 @@
 suite('ngrok-services', function() {
-  var Promise = require('promise');
-
   var assert = require('assert');
-  var exec = require('child_process').exec;
-  var execFile = require('child_process').execFile;
   var http = require('http');
   var https = require('https');
   var fs = require('fs');
+  var run = require('./run');
 
   var fixture = __dirname + '/config.json';
+  var fixtureJSON = require(fixture);
+  var pidPath = __dirname + '/.ngrok_services.pid';
 
   function cleanupPid() {
-    var path = __dirname + '/.ngrok_services.pid';
-    if (fs.existsSync(path)) fs.unlinkSync(path);
+    if (fs.existsSync(pidPath)) fs.unlinkSync(pidPath);
   }
 
   teardown(cleanupPid);
   setup(cleanupPid);
 
-  /**
-  Promise wrapper for executing ngrok services
-  */
-  function run(argv) {
-    return new Promise(function(accept, reject) {
-      var result = {};
-      var bin = __dirname + '/../bin/ngrok-services';
-
-      // cwd of the test folder so the pid file is in the right place
-      var options = { cwd: __dirname };
-
-      var proc = execFile(bin, argv, options, function(err, stdout, stderr) {
-        if (err) return reject(err);
-        result.err = err;
-        result.stdout = stdout;
-        result.stderr = stderr;
-        accept(result);
-      });
-    });
-  }
-
   teardown(function() {
+    // ensure the services stop
     return run(['stop']);
   });
 
@@ -48,13 +26,21 @@ suite('ngrok-services', function() {
     var server = http.createServer(function(req, res) {
       // woot proxy works!!
       server.close();
-      done();
+      res.end();
+
+      // turn off the sevices
+      run(['stop']).then(function() {
+        assert.ok(!fs.existsSync(pidPath), 'pid file is removed');
+        done();
+      });
     });
 
-    // magic number for the port (see config.json)
-    server.listen(60323);
+    server.listen(fixtureJSON.http.port);
+
     run(['start', fixture]).then(
       function(result) {
+        assert.ok(fs.existsSync(pidPath), 'creates pid file');
+
         // stdout should be valid json always.
         var hosts = JSON.parse(result.stdout);
         https.get(hosts.http);

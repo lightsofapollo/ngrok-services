@@ -9,14 +9,15 @@ var fs = require('fs');
 // default pid if parent does not provide one
 var DEFAULT_PID_FILE = './.ngrok_services.pid';
 
+program.
+  option('-p, --pid-file <path>', 'pid file location', DEFAULT_PID_FILE);
 
 // stop command
 program.
   command('stop').
-  option('-p, --pid-file <path>', 'pid file location', DEFAULT_PID_FILE).
   description('terminate ngrok tunneling').
   action(function(cmd) {
-    var pidFile = fsPath.resolve(cmd.pidFile);
+    var pidFile = fsPath.resolve(program.pidFile);
 
     // XXX: some tools fail here but I don't care if its stopped already so exit
     // with success.
@@ -38,7 +39,6 @@ program.
 program.
   command('start <config>').
   description('start running ngrok with the config').
-  option('-p, --pid-file <path>', 'pid file location', DEFAULT_PID_FILE).
   action(function(config, cmd) {
     var start = Date.now();
     // start the ngrok interface in a different process
@@ -51,7 +51,7 @@ program.
       }
     );
 
-    var pidFile = fsPath.resolve(cmd.pidFile);
+    var pidFile = fsPath.resolve(program.pidFile);
 
     // disallow multiple PID files so its easy to figure out who is who
     if (fs.existsSync(pidFile)) {
