@@ -1,6 +1,6 @@
 {
   "name": "ngrok-services",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "ngrok (tunneling) manager",
   "main": "index.js",
   "keywords": [
@@ -24,7 +24,7 @@
   "dependencies": {
     "commander": "~2.1.0",
     "promise": "~3.2.0",
-    "ngrok": "git://github.com/lightsofapollo/ngrok.git#40465c92799d8e8f19f581bf8dc0c0b2665d262f",
+    "ngrok": "git://github.com/lightsofapollo/ngrok.git#4ef8322ca9de970a9de24c42ada896b05ecfb4b3",
     "debug": "~0.7.4"
   },
   "devDependencies": {
