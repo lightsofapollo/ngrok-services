@@ -8,35 +8,9 @@ var fs = require('fs');
 var debug = require('debug')('ngrok-services:cli');
 
 // default pid if parent does not provide one
-var DEFAULT_PID_FILE = './.ngrok_services.pid';
+var DEFAULT_PID_FILE = '.ngrok_services.pid';
 // default config file name
 var DEFAULT_CONFIG_FILE = 'ngrok_services.json';
-
-program.
-  option('-p, --pid-file <path>', 'pid file location', DEFAULT_PID_FILE);
-
-// stop command
-program.
-  command('stop').
-  description('terminate ngrok tunneling').
-  action(function(cmd) {
-    var pidFile = fsPath.resolve(program.pidFile);
-
-    // XXX: some tools fail here but I don't care if its stopped already so exit
-    // with success.
-    if (!fs.existsSync(pidFile)) {
-      process.exit(0);
-      return;
-    }
-
-    // and now the ghetto spawn/kill :)
-    var pid = fs.readFileSync(pidFile, 'utf8');
-    var spawn = require('child_process').spawn;
-    var killProc = spawn('kill', [pid], {
-      // show output here
-      stdio: 'inherit'
-    });
-  });
 
 // helper function to resolve the config file based on defaults, cwd and other
 // factors.
@@ -59,6 +33,38 @@ function resolveConfigFile(input) {
   return input;
 }
 
+program.
+  option('-p, --pid-file <path>', 'pid file location');
+
+// resolve a pid file from the config file
+function resolvePidFile(configFile) {
+  if (program.pidFile) return fsPath.resolve(program.pidFile);
+  return fsPath.join(fsPath.dirname(configFile), DEFAULT_PID_FILE);
+}
+
+// stop command
+program.
+  command('stop [config]').
+  description('terminate ngrok tunneling').
+  action(function(config, cmd) {
+    var pidFile = resolvePidFile(resolveConfigFile(config));
+
+    // XXX: some tools fail here but I don't care if its stopped already so exit
+    // with success.
+    if (!fs.existsSync(pidFile)) {
+      process.exit(0);
+      return;
+    }
+
+    // and now the ghetto spawn/kill :)
+    var pid = fs.readFileSync(pidFile, 'utf8');
+    var spawn = require('child_process').spawn;
+    var killProc = spawn('kill', [pid], {
+      // show output here
+      stdio: 'inherit'
+    });
+  });
+
 // start command
 program.
   command('start [config]').
@@ -76,7 +82,7 @@ program.
       }
     );
 
-    var pidFile = fsPath.resolve(program.pidFile);
+    var pidFile = resolvePidFile(config);
 
     // disallow multiple PID files so its easy to figure out who is who
     if (fs.existsSync(pidFile)) {
