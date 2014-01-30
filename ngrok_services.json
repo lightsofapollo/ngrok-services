@@ -1,3 +1,7 @@
 {
-  "http": { "port": 60323 }
+  "http": { "port": 60323 },
+  "amqp": {
+    "port": 5701,
+    "proto": "xfoo"
+  }
 }

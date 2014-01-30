@@ -101,8 +101,19 @@ program.
 
     proc.once('exit', earlyExitHandler);
     proc.once('message', function(msg) {
+      var err = msg[0];
+      var services = msg[1];
+
+      if (err) {
+        console.error('ngrok err: %s', err.message);
+        console.error();
+        console.error(err.stack);
+        process.exit(1);
+        return;
+      }
+
       // write pure json so its easy to parse out
-      process.stdout.write(JSON.stringify(msg));
+      process.stdout.write(JSON.stringify(services));
 
       // remove exit listener
       proc.removeListener('exit', earlyExitHandler);

@@ -1,5 +1,5 @@
 {
-  "name": "ngrok-hacks",
+  "name": "ngrok-services",
   "version": "0.0.0",
   "description": "ngrok (tunneling) manager",
   "main": "index.js",
@@ -9,8 +9,15 @@
     "services",
     "public ip"
   ],
+  "bin": {
+    "ngrok-services": "./bin/ngrok-services"
+  },
   "scripts": {
     "test": "./node_modules/.bin/mocha --reporter spec"
+  },
+  "repo": {
+    "url": "https://github.com/lightsofapollo/ngrok-services",
+    "type": "git"
   },
   "author": "James Lal [:lightsofapollo]",
   "license": "MIT",

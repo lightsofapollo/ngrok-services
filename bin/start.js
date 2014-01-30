@@ -10,13 +10,19 @@ function commandStart(configPath, options) {
   var config = require(modulePath);
 
   ngrokConfig(config).then(
-    function (services) {
+    function(services) {
       // write the PID file
       fs.writeFileSync(options.pidFile, process.pid);
 
       // now that we have the services send the message over so
       // the parent can detach and let this process keep running.
-      process.send(services);
+      process.send([null, services]);
+    },
+    function(err) {
+      process.send([{
+        message: err.message,
+        stack: err.stack
+      }]);
     }
   );
 
