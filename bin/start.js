@@ -17,7 +17,6 @@ function commandStart(configPath, options) {
       // now that we have the services send the message over so
       // the parent can detach and let this process keep running.
       process.send(services);
-      console.log(process.stdin.destroy(), 'EOF');
     }
   );
 
@@ -36,7 +35,6 @@ function commandStart(configPath, options) {
 
 
 // wait for the parent to send us a message
-var start = Date.now();
 process.once('message', function(args) {
   // then run with the parent commands
   commandStart.apply(this, args);
