@@ -10,7 +10,7 @@ Node based wrapper for ngrok... Ideally this would be baked into ngrok
 
 ## Usage
 
-create a `ngrok_services.json` like this:
+create a `ngrok_services.json` (can also be a js file) like this:
 
 ``` json
 {
