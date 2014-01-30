@@ -1,0 +1,26 @@
+{
+  "name": "ngrok-hacks",
+  "version": "0.0.0",
+  "description": "ngrok (tunneling) manager",
+  "main": "index.js",
+  "keywords": [
+    "ngrok",
+    "tunneling",
+    "services",
+    "public ip"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "James Lal [:lightsofapollo]",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "~2.1.0",
+    "promise": "~3.2.0",
+    "ngrok": "git://github.com/lightsofapollo/ngrok.git#40465c92799d8e8f19f581bf8dc0c0b2665d262f"
+  },
+  "devDependencies": {
+    "mocha": "~1.17.1",
+    "mocha-as-promised": "~2.0.0"
+  }
+}

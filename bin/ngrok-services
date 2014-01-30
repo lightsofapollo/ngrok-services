@@ -1,0 +1,90 @@
+#! /usr/bin/env node
+
+var program = require('commander');
+var fork = require('child_process').fork;
+var spawn = require('child_process').spawn;
+var fsPath = require('path');
+var fs = require('fs');
+
+// default pid if parent does not provide one
+var DEFAULT_PID_FILE = './.ngrok_services.pid';
+
+
+// stop command
+program.
+  command('stop').
+  option('-p, --pid-file <path>', 'pid file location', DEFAULT_PID_FILE).
+  description('terminate ngrok tunneling').
+  action(function(cmd) {
+    var pidFile = fsPath.resolve(cmd.pidFile);
+
+    // XXX: some tools fail here but I don't care if its stopped already so exit
+    // with success.
+    if (!fs.existsSync(pidFile)) {
+      process.exit(0);
+      return;
+    }
+
+    // and now the ghetto spawn/kill :)
+    var pid = fs.readFileSync(pidFile, 'utf8');
+    var spawn = require('child_process').spawn;
+    var killProc = spawn('kill', [pid], {
+      // show output here
+      stdio: 'inherit'
+    });
+  });
+
+// start command
+program.
+  command('start <config>').
+  description('start running ngrok with the config').
+  option('-p, --pid-file <path>', 'pid file location', DEFAULT_PID_FILE).
+  action(function(config, cmd) {
+    var start = Date.now();
+    // start the ngrok interface in a different process
+    var proc = spawn(
+      process.execPath,
+      [__dirname + '/start.js'],
+      {
+        // don't share anything except IPC over a socket
+        stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+      }
+    );
+
+    var pidFile = fsPath.resolve(cmd.pidFile);
+
+    // disallow multiple PID files so its easy to figure out who is who
+    if (fs.existsSync(pidFile)) {
+      console.error(
+        'there may only be one pid file remove %s or stop the existing process',
+        pidFile
+      );
+      process.exit(1);
+    }
+
+    // while an early exit of the child may kill the parent it will not pass up
+    // the exit code. Watch for it correctly.
+    function earlyExitHandler(code) {
+      process.exit(code);
+    }
+
+    proc.once('exit', earlyExitHandler);
+    proc.once('message', function(msg) {
+      // write pure json so its easy to parse out
+      process.stdout.write(JSON.stringify(msg));
+
+      // remove exit listener
+      proc.removeListener('exit', earlyExitHandler);
+
+      // then detach
+      proc.disconnect();
+      proc.unref();
+    });
+
+    // send the already parsed arguments
+    proc.send([config, {
+      pidFile: pidFile
+    }]);
+  });
+
+program.parse(process.argv);
