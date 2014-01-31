@@ -1,7 +1,3 @@
 {
-  "http": { "port": 60323 },
-  "amqp": {
-    "port": 5701,
-    "proto": "xfoo"
-  }
+  "my_server_host": { "port": 60323 }
 }

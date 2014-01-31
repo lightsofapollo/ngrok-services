@@ -11,6 +11,18 @@ var debug = require('debug')('ngrok-services:cli');
 var DEFAULT_PID_FILE = '.ngrok_services.pid';
 // default config file name
 var DEFAULT_CONFIG_FILE = 'ngrok_services';
+var DEFAULT_OUTPUT_FORMAT = 'json';
+
+function getFormat(name) {
+  name = name || DEFAULT_OUTPUT_FORMAT;
+  try {
+    // try external module first
+    return require(fsPath.resolve(name));
+  } catch (e) {
+    // then try the local module
+    return require(fsPath.join(__dirname, '..', 'formatters', name));
+  }
+}
 
 // helper function to resolve the config file based on defaults, cwd and other
 // factors.
@@ -31,7 +43,8 @@ function resolveConfigFile(input) {
 }
 
 program.
-  option('-p, --pid-file <path>', 'pid file location');
+  option('-p, --pid-file <path>', 'pid file location').
+  option('-f, --format <name>', 'name of formatter [env|json]');
 
 // resolve a pid file from the config file
 function resolvePidFile(configFile) {
@@ -109,8 +122,11 @@ program.
         return;
       }
 
+      // run it through a formatter
+      var formatter = getFormat(program.format);
+
       // write pure json so its easy to parse out
-      process.stdout.write(JSON.stringify(services));
+      process.stdout.write(formatter(services));
 
       // remove exit listener
       proc.removeListener('exit', earlyExitHandler);
@@ -120,7 +136,10 @@ program.
       proc.unref();
     });
 
-    var options = { pidFile: pidFile };
+    var options = {
+      pidFile: pidFile
+    };
+
     debug('launch ngrok services', config, options);
 
     // send the already parsed arguments
@@ -147,6 +166,7 @@ program.
     // super ghetto start/restart
     var options = [];
     if (cmd.pidFile) options.push('--pid-file ' + cmd.pidFile);
+    if (program.format) options.push('--format=' + program.format);
     options.push(config || '');
 
     runSelf('stop', options, function() {
